@@ -56,7 +56,7 @@ Things to think about
 We have provided you with one data set in which you can test your sorter, but when grading it, we will be testing it against many different data sets. Some things you might want to look out for:
 	1. Is the data already sorted, or almost sorted
 	2. Do we have positive numbers or negative numbers
-	3. There are other things you might want to consider, but we will leave that up to you. 
+	3. There are other things you might want to consider, but we will leave that up to you.
 
 ---------------
 Helpful Commands
