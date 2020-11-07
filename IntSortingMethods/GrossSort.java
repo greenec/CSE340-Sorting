@@ -3,8 +3,7 @@ package IntSortingMethods;
 public class GrossSort extends Sort {
 
 	void algorithm() {
-		/* You may change any code within this method */
-		sort(this.data);
+		sort(0, data.length);
 	}
 
 	void linearPass(int[] arr) {
@@ -14,24 +13,29 @@ public class GrossSort extends Sort {
 		}
 	}
 
-	/* You may define any new methods you want and may change this method */
-	void sort(int[] arr) {
-		int n = arr.length;
-
-		// One by one move boundary of unsorted subarray
-		for (int i = 0; i < n - 1; i++) {
-			// Find the minimum element in unsorted array
-			int min_idx = i;
-			for (int j = i + 1; j < n; j++)
-				if (arr[j] < arr[min_idx])
-					min_idx = j;
-
-			// Swap the found minimum element with the first element
-			int temp = arr[min_idx];
-			arr[min_idx] = arr[i];
-			arr[i] = temp;
-
+	/* Perform the partitioning step of QuickSort: */
+	public void sort(int start, int len) {
+		// Handle the base case:
+		if(len - start < 2) {
+			return;
 		}
+
+		// TODO: Select an optimal pivot point:
+		int pivot = start;
+
+		// Perform the necessary swap operations:
+		for(int i = start; i < len; ++i) {
+			if(data[i] < data[pivot]) {
+				int tmp = data[pivot];
+				data[pivot] = data[i];
+				data[i] = data[pivot + 1];
+				data[pivot + 1] = tmp;
+				++pivot;
+			}
+		}
+
+		sort(start, pivot);
+		sort(pivot + 1, len);
 	}
 
 	public String getAuthor() {
