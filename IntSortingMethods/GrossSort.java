@@ -4,14 +4,55 @@ public class GrossSort extends Sort {
 
 	void algorithm() {
 		/* You may change any code within this method */
+		linearPass(this.data);
 		sort(this.data);
 	}
 
 	void linearPass(int[] arr) {
-		for (int i = 0; i < arr.length - 1; i++) {
-			int diff = arr[i + 1] - arr[i];
+		float diffSum = 0;
+		int count = 0;
 
+		StdDevResult stdDevResult = calcStandardDeviation(arr);
+
+		double min = stdDevResult.mean - stdDevResult.standardDeviation;
+		double max = stdDevResult.mean + stdDevResult.standardDeviation;
+
+		for (int i = 0; i < arr.length - 1; i++) {
+			// check to make sure that the elements are within one standard deviation
+			if (arr[i] < min || arr[i] > max || arr[i + 1] < min || arr[i + 1] > max) {
+				continue;
+			}
+
+			int diff = arr[i + 1] - arr[i];
+			diffSum += diff;
+			count++;
 		}
+
+		float avgDiff = diffSum / count;
+
+		System.out.println("Min: " + min);
+		System.out.println("Max: " + max);
+		System.out.println("Average difference between array values: " + avgDiff);
+	}
+
+	StdDevResult calcStandardDeviation(int[] arr) {
+		double sum = 0.0;
+		double standardDeviation = 0.0;
+		int count = arr.length;
+
+		for (int num : arr) {
+			sum += num;
+		}
+
+		double mean = sum / count;
+
+		for (int num : arr) {
+			standardDeviation += Math.pow(num - mean, 2);
+		}
+
+		standardDeviation = Math.sqrt(standardDeviation / count);
+
+		return new StdDevResult(standardDeviation, mean);
 	}
 
 	/* You may define any new methods you want and may change this method */
@@ -38,5 +79,13 @@ public class GrossSort extends Sort {
 		return "crg222 and brr322";
 	}
 
-}
+	static class StdDevResult {
+		public double standardDeviation;
+		public double mean;
 
+		public StdDevResult(double standardDeviation, double mean) {
+			this.standardDeviation = standardDeviation;
+			this.mean = mean;
+		}
+	}
+}
