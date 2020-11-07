@@ -1,6 +1,6 @@
 package IntSortingMethods;
 
-public class SelectionSort extends Sort {
+public class GrossSort extends Sort {
 
 	void algorithm() {
 		/* You may change any code within this method */
@@ -8,7 +8,7 @@ public class SelectionSort extends Sort {
 	}
 
 	void linearPass(int[] arr) {
-		for (int i = 0; i < n - 1; i++) {
+		for (int i = 0; i < arr.length - 1; i++) {
 			int diff = arr[i + 1] - arr[i];
 
 		}
