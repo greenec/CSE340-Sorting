@@ -30,9 +30,28 @@ public class GrossSort extends Sort {
 
 		float avgDiff = diffSum / count;
 
-		System.out.println("Min: " + min);
-		System.out.println("Max: " + max);
+		if (avgDiff < 0) {
+			arr = reverseArray(arr);
+		}
+
+		System.out.println("Min: " + min + ", Max: " + max);
 		System.out.println("Average difference between array values: " + avgDiff);
+	}
+
+	int[] reverseArray(int[] arr) {
+		int low = 0;
+		int high = arr.length - 1;
+
+		while (low < high) {
+			int temp = arr[low];
+			arr[low] = arr[high];
+			arr[high] = temp;
+
+			low++;
+			high--;
+		}
+
+		return arr;
 	}
 
 	StdDevResult calcStandardDeviation(int[] arr) {
