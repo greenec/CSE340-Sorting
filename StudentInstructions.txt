@@ -1,0 +1,82 @@
+Please read this, ESPECIALLY THE COMPILATION SECTION before you start.
+
+The organization other files in the zip should look like this:
+StudentVersion
+	StudentInstructions.txt
+	Finished
+	GeneratedData
+		unsortedData.txt
+	IntSortingMethod
+		Sort.class (DO NOT DELETE this file)
+		SelectionSort.java
+	Tester
+		ProgramTester.class
+	ToTest
+		test_files.sh
+
+What you ARE allowed to change:
+	The name of the .java file of your sorting algorithm (we named our algorithm SelectionSort.java, but it could be MyAmazingAlgorithm.java)
+	You may change all the code within algorithm
+	You must change the string within the return line of getAuthor
+	You may add new methods as you wish
+	You may add new .txt files to the GeneratedData folder
+	You may change the timeout timer in the bash script (test_files.sh) for testing purposes
+
+What you ARE NOT allowed to use:
+	No reading or writing files
+	No static variables
+	No web requests
+	Use multiple files for your code (all code must compile into one .class file)
+
+------------------
+Time to get coding
+------------------
+Step 1: Setup
+	A) Rename the java file (SelectionSort.java) to describe the type of sort you plan on implementing. It is okay if you have to change this multiple times. Java also requries you to change the file name to match the class name, so if your class is "MyAmazingAlgorithm" then the file name must be "MyAmazingAlgorithm.java"
+	B) Replace the string in the return line of getAuthor with a string of your Lehigh alias(es).
+
+Step 2: Coding
+	The data you need to sort will be provided through "this.data". Your sort must either sort in place or copy the sorted values back into "this.data" after you finish sorting. Making a new array and saying "this.data = someNewArray;" will not work. To copy the data into "this.data" use a for loop to take the first element from your other sorted array and put that into "this.data[0]" and repeat for the rest of the elements.
+	You may declare any methods you would like to help you. As you should see in SelectionSort, a method called sort is defined that actually does the sorting.
+
+Step 3: Compilation -- read part B carefully
+	A) Navigate so your working directory is the parent of IntSortingMethods (go to IntSortingMethods and type "cd ..") .
+	B) Type "javac IntSortingMethod/MyAmazingAlgorithm.java" where "MyAmazingAlgorithm" is replaced with what you named your java file (in our example, we would do javac IntSortingMethod/SelectionSort.java). If you try to compile directly inside the IntSortingMethods folder, you will get a compilation error.
+
+Step 4: Testing
+	A) Move your compiled code (the .class file) into the "ToTest" folder.
+	B) In a bash terminal (Windows support not available), go to the "ToTest" folder and type "./test_files.sh" or "sh test_files.sh".
+	C) A output file, "log.txt", will be created in "ToTest" and your code will be run. The tester will use data provided in the "GeneratedData" folder to test your algorithm. That folder currently contains unsortedData.txt, which contains ~1800 unsorted integers. You can create other, larger test datasets in the GeneratedData folder and this is highly recommended as we will be testing your sorting algorithms against very large datasets.
+	D) When the tester finishes, you can find your .class file in the "Finished" folder. If you use ctrl+c or something else to stop the tester, the .class should be in "IntSortingMethods".
+	E) If your code runs unsuccessfully, you should get some sort or error message on your screen. Additionally, if your sorted output yields the wrong output, 2 files will be generated, one with what your algorithm thought the sorted output should be and one with the actual sorted output. It will also tell you the first index of the arrays that didn't match.
+
+------------
+Things to think about
+------------
+We have provided you with one data set in which you can test your sorter, but when grading it, we will be testing it against many different data sets. Some things you might want to look out for:
+	1. Is the data already sorted, or almost sorted
+	2. Do we have positive numbers or negative numbers
+	3. There are other things you might want to consider, but we will leave that up to you. 
+
+---------------
+Helpful Commands
+---------------
+Getting the Folder to sunlab machine:
+	1. Download the files on your local machine
+	2. In a linux terminal (git bash will work), type scp -r ~/PathToFile abc123@sunlab.cse.lehigh.edu:/FolderYouWantItInYourSunlabAcct
+	3. To unzip, type unzip folderName
+
+Moving all the files from Generated to ToTest
+	1. Navigate to StudentVersion level
+	2. Type cp Finished/* ToTest/
+
+---------------
+Grading and Compiling
+---------------
+Please make sure to compile your code on the Sunlab machines. They might be running a different version of java than your local machine (they likely are). If your code doesn't run on the sunlab machines, the graders reserve the right to give you a 0 for this assignment; however, leave your .java files just in case the graders are feeling nice enough to recompile your code, but there will be a large penalty.
+See document on CourseSite for grading.
+
+---------------
+Academic Integrity
+---------------
+Please don't cheat. This is extra credit.
