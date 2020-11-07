@@ -7,6 +7,13 @@ public class SelectionSort extends Sort {
 		sort(this.data);
 	}
 
+	void linearPass(int[] arr) {
+		for (int i = 0; i < n - 1; i++) {
+			int diff = arr[i + 1] - arr[i];
+
+		}
+	}
+
 	/* You may define any new methods you want and may change this method */
 	void sort(int[] arr) {
 		int n = arr.length;
@@ -19,8 +26,7 @@ public class SelectionSort extends Sort {
 				if (arr[j] < arr[min_idx])
 					min_idx = j;
 
-			// Swap the found minimum element with the first
-			// element
+			// Swap the found minimum element with the first element
 			int temp = arr[min_idx];
 			arr[min_idx] = arr[i];
 			arr[i] = temp;
@@ -29,8 +35,7 @@ public class SelectionSort extends Sort {
 	}
 
 	public String getAuthor() {
-		/* You MUST change the following line of code if you want credit.*/
-		return "abc123 [and xyz456]";
+		return "crg222 and brr322";
 	}
 
 }
