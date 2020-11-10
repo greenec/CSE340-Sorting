@@ -64,7 +64,7 @@ public class GrossSort extends Sort {
 		double max = stdDevResult.mean + stdDevResult.standardDeviation;
 
 		for (int i = 0; i < arr.length - 1; i++) {
-			// check to make sure that the elements are within one standard deviation
+			// skip over outliers in the data set when analyzing the array
 			if (arr[i] < min || arr[i] > max || arr[i + 1] < min || arr[i + 1] > max) {
 				continue;
 			}
@@ -74,14 +74,15 @@ public class GrossSort extends Sort {
 			count++;
 		}
 
+		// calculate metrics
 		float avgDiff = diffSum / count;
 
 		if (avgDiff < 0) {
 			arr = reverseArray(arr);
 		}
 
-		System.out.println("Min: " + min + ", Max: " + max);
-		System.out.println("Average difference between array values: " + avgDiff);
+		// System.out.println("Min: " + min + ", Max: " + max);
+		// System.out.println("Average difference between array values: " + avgDiff);
 	}
 
 	int[] reverseArray(int[] arr) {
@@ -131,6 +132,14 @@ public class GrossSort extends Sort {
 			System.err.println("ERROR: Sorting thread was interrupted unexpectedly");
 			System.exit(1);
 		}
+
+		Runtime runtime = Runtime.getRuntime();
+
+		// runtime.gc();
+
+		long memory = runtime.totalMemory() - runtime.freeMemory();
+		double memoryMB = memory / 1024.0 / 1024.0;
+		System.out.println("Used memory: " + memoryMB + " MB");
 	}
 
 	public String getAuthor() {
