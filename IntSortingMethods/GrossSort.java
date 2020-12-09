@@ -1,14 +1,20 @@
 package IntSortingMethods;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+
 public class GrossSort extends Sort {
 	/* Define a class which can serve as our thread runner: */
-	private class SortThread extends Thread {
+	private class Sorter implements Runnable {
+		private final ExecutorService pool;
 		private int data[];
 		private int start;
 		private int len;
 
 		/* Define a constructor to set all of the internal fields: */
-		public SortThread(int data[], int start, int len) {
+		public Sorter(ExecutorService pool, int data[], int start, int len) {
+			this.pool = pool;
 			this.data = data;
 			this.start = start;
 			this.len = len;
@@ -35,10 +41,28 @@ public class GrossSort extends Sort {
 				}
 			}
 
+			// Handle the single-threaded case:
+			if(this.pool == null) {
+				// Store local variables temporarily:
+				int start = this.start;
+				int len = this.len;
+
+				// Do the first half:
+				this.len = pivot;
+				run();
+
+				// Do the second half:
+				this.start = pivot + 1;
+				this.len = len;
+				run();
+
+				// Return once sorting is complete:
+				return;
+			}
+
 			/* Spawn a child thread to process 50% of the remaining work: */
 			/* TODO: Don't spawn a thread if that thread's base-case is met */
-			SortThread t1 = new SortThread(data, start, pivot);
-			t1.start();
+			Future task1 = pool.submit(new Sorter(this.pool, data, start, pivot));
 
 			/* Recursively process the next section: */
 			start = pivot + 1;
@@ -46,9 +70,9 @@ public class GrossSort extends Sort {
 
 			/* Attempt to join the child thread: */
 			try {
-				t1.join();
-			} catch(InterruptedException e) {
-				System.err.println("ERROR: Sorting thread was interrupted unexpectedly");
+				task1.get();
+			} catch(Throwable e) {
+				System.err.println("ERROR: Sorting threads were unable to be joined");
 				System.exit(1);
 			}
 		}
@@ -121,16 +145,15 @@ public class GrossSort extends Sort {
 
 	/* Spawn a new thread to run the sorting algorithm on the provided array: */
 	/* TODO: The main thread should be included in the thread pool, and shouldn't just be waiting around here */
-	void algorithm() {
-		linearPass(this.data);
-		SortThread sorter = new SortThread(data, 0, data.length);
-		sorter.start();
-		try {
-			sorter.join();
-		} catch(InterruptedException e) {
-			System.err.println("ERROR: Sorting thread was interrupted unexpectedly");
-			System.exit(1);
-		}
+	public void algorithm() {
+		ExecutorService pool = null;
+
+		// Uncomment for multi-threaded execution (slow):
+		//pool = Executors.newWorkStealingPool();
+
+		//linearPass(this.data);
+		Sorter sorter = new Sorter(pool, data, 0, data.length);
+		sorter.run();
 	}
 
 	public String getAuthor() {
