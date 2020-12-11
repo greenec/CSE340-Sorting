@@ -225,13 +225,27 @@ public class GrossSort extends Sort {
 		return out;
 	}
 
+	void insertionSort(ArrayList<Integer> arr) {
+		int n = arr.size();
+		for (int i = 1; i < n; i++) {
+			int current = arr.get(i);
+			int j = i - 1;
+
+			while ((j >= 0) && (arr.get(j) > current)) {
+				arr.set(j + 1, arr.get(j));
+				j--;
+			}
+			arr.set(j + 1, current);
+		}
+	}
+
 	void bucketSort(int[] arr)  {
 		int len = arr.length;
 
 		if (len == 0)
 			return;
 
-		List<List<Integer>> buckets = new ArrayList<>(len);
+		ArrayList<ArrayList<Integer>> buckets = new ArrayList<>(len);
 
 		int maxVal = 0;
 		for (int i = 0; i < len; i++) {
@@ -248,7 +262,7 @@ public class GrossSort extends Sort {
 		}
 
 		for (int i = 0; i < len; i++) {
-			Collections.sort(buckets.get(i));
+			insertionSort(buckets.get(i));
 		}
 
 		int idx = 0;
