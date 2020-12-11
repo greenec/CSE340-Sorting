@@ -1,7 +1,10 @@
 package IntSortingMethods;
 
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Phaser;
 
 public class GrossSort extends Sort {
@@ -13,6 +16,9 @@ public class GrossSort extends Sort {
 	private int minArrayValue;
 	private float avgArrayValue;
 	private float avgDiff;
+	private int numPositive = 0;
+	private int numNegative = 0;
+	private int numZero = 0;
 
 	// identifying sorted sub-arrays
 	private int nmiSize;
@@ -108,30 +114,41 @@ public class GrossSort extends Sort {
 		double min = stdDevResult.mean - stdDevResult.standardDeviation;
 		double max = stdDevResult.mean + stdDevResult.standardDeviation;
 
-		for (int i = 0; i < arr.length - 1; i++) {
+		for (int i = 0; i < arr.length; i++) {
 			if (arr[i] > this.maxArrayValue) {
 				this.maxArrayValue = arr[i];
 			}
-
-			if (arr[i] < this.minArrayValue) {
+			else if (arr[i] < this.minArrayValue) {
 				this.minArrayValue = arr[i];
 			}
 
 			sum += arr[i];
 
-			// record the ending index of the naturally sorted sub-array
-			if (arr[i] > arr[i + 1]) {
-				naturalMergeIndices[nmiSize] = i;
-				nmiSize++;
+			if (arr[i] > 0) {
+				this.numPositive++;
+			}
+			else if (arr[i] < 0) {
+				this.numNegative++;
+			}
+			else if (arr[i] == 0) {
+				this.numZero++;
 			}
 
-			// skip over outliers in the data set when doing the "average difference" computation
-			if (arr[i] < min || arr[i] > max || arr[i + 1] < min || arr[i + 1] > max) {
-				continue;
-			}
+			if (i != arr.length - 1) {
+				// record the ending index of the naturally sorted sub-array
+				if (arr[i] > arr[i + 1]) {
+					naturalMergeIndices[nmiSize] = i;
+					nmiSize++;
+				}
 
-			diffSum += arr[i + 1] - arr[i];
-			avgDiffCount++;
+				// skip over outliers in the data set when doing the "average difference" computation
+				if (arr[i] < min || arr[i] > max || arr[i + 1] < min || arr[i + 1] > max) {
+					continue;
+				}
+
+				diffSum += arr[i + 1] - arr[i];
+				avgDiffCount++;
+			}
 		}
 
 		naturalMergeIndices[nmiSize] = arr.length - 1;
@@ -184,22 +201,107 @@ public class GrossSort extends Sort {
 		return new StdDevResult(standardDeviation, mean);
 	}
 
+	List<int[]> splitPositiveNegative(int[] arr) {
+
+		List<int[]> out = new ArrayList<>(2);
+
+		int[] pos = new int[this.numPositive + this.numZero];
+		int[] neg = new int[this.numNegative];
+
+		int posIdx = 0;
+		int negIdx = 0;
+
+		for (int value : arr) {
+			if (value >= 0) {
+				pos[posIdx++] = value;
+			} else {
+				neg[negIdx++] = value * -1;
+			}
+		}
+
+		out.add(0, pos);
+		out.add(1, neg);
+
+		return out;
+	}
+
+	void bucketSort(int[] arr)  {
+		int len = arr.length;
+
+		if (len == 0)
+			return;
+
+		List<List<Integer>> buckets = new ArrayList<>(len);
+
+		int maxVal = 0;
+		for (int i = 0; i < len; i++) {
+			if (arr[i] > maxVal) {
+				maxVal = arr[i];
+			}
+
+			buckets.add(i, new ArrayList<>());
+		}
+
+		for (int value : arr) {
+			int idx = (int)((long)value * (len - 1) / maxVal);
+			buckets.get(idx).add(value);
+		}
+
+		for (int i = 0; i < len; i++) {
+			Collections.sort(buckets.get(i));
+		}
+
+		int idx = 0;
+		for (List<Integer> bucket : buckets) {
+			for (int value : bucket) {
+				arr[idx++] = value;
+			}
+		}
+	}
+
+	void bucketSortPosNeg(int[] arr) {
+		List<int[]> splitResult = splitPositiveNegative(arr);
+
+		int[] pos = splitResult.get(0);
+		int[] neg = splitResult.get(1);
+
+		bucketSort(pos);
+		bucketSort(neg);
+
+		// merge the positive and negative arrays
+		int idx = 0;
+		for (int i = neg.length - 1; i >= 0; i--) {
+			arr[idx++] = neg[i] * -1;
+		}
+		for (int value : pos) {
+			arr[idx++] = value;
+		}
+	}
+
 	/* Spawn a new thread to run the sorting algorithm on the provided array: */
 	/* TODO: The main thread should be included in the thread pool, and shouldn't just be waiting around here */
+	public void algorithm() {
 		staticAnalysis();
 		linearPass(this.data);
         
-		Phaser ph = new Phaser(1);
+		// Phaser ph = new Phaser(1);
 		// TODO: Figure out how to choose between a fixed-sized thread pool & a work-stealing pool:
 		//ExecutorService pool = Executors.newFixedThreadPool(3);
-		ExecutorService pool = Executors.newWorkStealingPool();
-		Sorter sorter = new Sorter(pool, ph, data, 0, data.length);
-		sorter.run();
-
+		// ExecutorService pool = Executors.newWorkStealingPool();
+		// Sorter sorter = new Sorter(pool, ph, data, 0, data.length);
+		// sorter.run();
 
 		// Shutdown the pool:
-		ph.arriveAndAwaitAdvance();
-		pool.shutdownNow();
+		// ph.arriveAndAwaitAdvance();
+		// pool.shutdownNow();
+
+		bucketSortPosNeg(this.data);
+
+		// Memory Usage
+		// Runtime runtime = Runtime.getRuntime();
+		// long memory = runtime.totalMemory() - runtime.freeMemory();
+		// double memoryMB = memory / 1024.0 / 1024.0;
+		// System.out.println("Used memory: " + memoryMB + " MB");
 	}
 
 	public String getAuthor() {
