@@ -5,6 +5,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Phaser;
 
 public class GrossSort extends Sort {
+	// static analysis
+	private int cpuThreads;
+
+	// statistical analysis from linear pass
+	private int maxArrayValue;
+	private int minArrayValue;
+	private float avgArrayValue;
+	private float avgDiff;
+
+	// identifying sorted sub-arrays
+	private int nmiSize;
+	private int[] naturalMergeIndices;
+
 	/* Define a class which can serve as our thread runner: */
 	private class Sorter implements Runnable {
 		// Manage concurrent execution:
@@ -74,9 +87,21 @@ public class GrossSort extends Sort {
 		}
 	}
 
+	void staticAnalysis() {
+		this.cpuThreads = Runtime.getRuntime().availableProcessors();
+	}
+
 	void linearPass(int[] arr) {
+		// used to find the average difference between consecutive array elements
 		float diffSum = 0;
-		int count = 0;
+		int avgDiffCount = 0;
+
+		// used to calculate the average array value
+		int sum = 0;
+
+		// used to find naturally sorted sub-arrays
+		this.nmiSize = 0;
+		this.naturalMergeIndices = new int[arr.length];
 
 		StdDevResult stdDevResult = calcStandardDeviation(arr);
 
@@ -84,24 +109,44 @@ public class GrossSort extends Sort {
 		double max = stdDevResult.mean + stdDevResult.standardDeviation;
 
 		for (int i = 0; i < arr.length - 1; i++) {
-			// check to make sure that the elements are within one standard deviation
+			if (arr[i] > this.maxArrayValue) {
+				this.maxArrayValue = arr[i];
+			}
+
+			if (arr[i] < this.minArrayValue) {
+				this.minArrayValue = arr[i];
+			}
+
+			sum += arr[i];
+
+			// record the ending index of the naturally sorted sub-array
+			if (arr[i] > arr[i + 1]) {
+				naturalMergeIndices[nmiSize] = i;
+				nmiSize++;
+			}
+
+			// skip over outliers in the data set when doing the "average difference" computation
 			if (arr[i] < min || arr[i] > max || arr[i + 1] < min || arr[i + 1] > max) {
 				continue;
 			}
 
-			int diff = arr[i + 1] - arr[i];
-			diffSum += diff;
-			count++;
+			diffSum += arr[i + 1] - arr[i];
+			avgDiffCount++;
 		}
 
-		float avgDiff = diffSum / count;
+		naturalMergeIndices[nmiSize] = arr.length - 1;
+		nmiSize++;
 
-		if (avgDiff < 0) {
+		// calculate metrics
+		this.avgDiff = diffSum / avgDiffCount;
+		this.avgArrayValue = (float)sum / arr.length;
+
+		/* if (avgDiff < 0) {
 			arr = reverseArray(arr);
-		}
+		} */
 
-		System.out.println("Min: " + min + ", Max: " + max);
-		System.out.println("Average difference between array values: " + avgDiff);
+		// System.out.println("Min: " + min + ", Max: " + max);
+		// System.out.println("Average difference between array values: " + avgDiff);
 	}
 
 	int[] reverseArray(int[] arr) {
@@ -141,15 +186,16 @@ public class GrossSort extends Sort {
 
 	/* Spawn a new thread to run the sorting algorithm on the provided array: */
 	/* TODO: The main thread should be included in the thread pool, and shouldn't just be waiting around here */
-	public void algorithm() {
+		staticAnalysis();
+		linearPass(this.data);
+        
 		Phaser ph = new Phaser(1);
 		// TODO: Figure out how to choose between a fixed-sized thread pool & a work-stealing pool:
 		//ExecutorService pool = Executors.newFixedThreadPool(3);
 		ExecutorService pool = Executors.newWorkStealingPool();
-
-		//linearPass(this.data);
 		Sorter sorter = new Sorter(pool, ph, data, 0, data.length);
 		sorter.run();
+
 
 		// Shutdown the pool:
 		ph.arriveAndAwaitAdvance();
