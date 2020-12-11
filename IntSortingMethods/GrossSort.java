@@ -1,23 +1,38 @@
 package IntSortingMethods;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Phaser;
+
 public class GrossSort extends Sort {
 	/* Define a class which can serve as our thread runner: */
-	private class SortThread extends Thread {
+	private class Sorter implements Runnable {
+		// Manage concurrent execution:
+		private final ExecutorService pool;
+		private final Phaser ph;
+
+		// Store the application state:
 		private int data[];
 		private int start;
 		private int len;
 
 		/* Define a constructor to set all of the internal fields: */
-		public SortThread(int data[], int start, int len) {
+		public Sorter(ExecutorService pool, Phaser ph, int data[], int start, int len) {
+			this.pool = pool;
+			this.ph = ph;
 			this.data = data;
 			this.start = start;
 			this.len = len;
+
+			ph.register();
 		}
 
 		/* Perform the partitioning step of QuickSort: */
 		@Override public void run() {
 			// Handle the base case:
 			if(len - start < 2) {
+				// Arrive at the base-case state & return:
+				ph.arrive();
 				return;
 			}
 
@@ -35,22 +50,27 @@ public class GrossSort extends Sort {
 				}
 			}
 
-			/* Spawn a child thread to process 50% of the remaining work: */
-			/* TODO: Don't spawn a thread if that thread's base-case is met */
-			SortThread t1 = new SortThread(data, start, pivot);
-			t1.start();
+			// Handle the single-threaded case:
+			if(this.pool == null) {
+				// Store local variables temporarily:
+				int start = this.start;
+				int len = this.len;
 
-			/* Recursively process the next section: */
+				// Do the first half:
+				this.len = pivot;
+				run();
+
+				// Prepare for the second half of the array:
+				this.len = len;
+			} else {
+					// Register a task to process the first half of the array:
+					// TODO: Don't do this if that thread's base-case is met
+					pool.submit(new Sorter(this.pool, this.ph, data, start, pivot));
+			}
+
+			// Recursively process the second half of the array:
 			start = pivot + 1;
 			run();
-
-			/* Attempt to join the child thread: */
-			try {
-				t1.join();
-			} catch(InterruptedException e) {
-				System.err.println("ERROR: Sorting thread was interrupted unexpectedly");
-				System.exit(1);
-			}
 		}
 	}
 
@@ -121,16 +141,19 @@ public class GrossSort extends Sort {
 
 	/* Spawn a new thread to run the sorting algorithm on the provided array: */
 	/* TODO: The main thread should be included in the thread pool, and shouldn't just be waiting around here */
-	void algorithm() {
-		linearPass(this.data);
-		SortThread sorter = new SortThread(data, 0, data.length);
-		sorter.start();
-		try {
-			sorter.join();
-		} catch(InterruptedException e) {
-			System.err.println("ERROR: Sorting thread was interrupted unexpectedly");
-			System.exit(1);
-		}
+	public void algorithm() {
+		Phaser ph = new Phaser(1);
+		// TODO: Figure out how to choose between a fixed-sized thread pool & a work-stealing pool:
+		//ExecutorService pool = Executors.newFixedThreadPool(3);
+		ExecutorService pool = Executors.newWorkStealingPool();
+
+		//linearPass(this.data);
+		Sorter sorter = new Sorter(pool, ph, data, 0, data.length);
+		sorter.run();
+
+		// Shutdown the pool:
+		ph.arriveAndAwaitAdvance();
+		pool.shutdownNow();
 	}
 
 	public String getAuthor() {
