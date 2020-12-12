@@ -6,23 +6,25 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Phaser;
+import java.util.Random;
+
 
 public class GrossSort extends Sort {
 	// static analysis
-	private int cpuThreads;
+	// private int cpuThreads;
 
 	// statistical analysis from linear pass
-	private int maxArrayValue;
-	private int minArrayValue;
-	private float avgArrayValue;
-	private float avgDiff;
+	// private int maxArrayValue;
+	// private int minArrayValue;
+	// private float avgArrayValue;
+	// private float avgDiff;
 	private int numPositive = 0;
 	private int numNegative = 0;
 	private int numZero = 0;
 
 	// identifying sorted sub-arrays
-	private int nmiSize;
-	private int[] naturalMergeIndices;
+	// private int nmiSize;
+	// private int[] naturalMergeIndices;
 
 	/* Define a class which can serve as our thread runner: */
 	private class Sorter implements Runnable {
@@ -93,17 +95,20 @@ public class GrossSort extends Sort {
 		}
 	}
 
+	/*
 	void staticAnalysis() {
 		this.cpuThreads = Runtime.getRuntime().availableProcessors();
 	}
+	*/
 
 	void linearPass(int[] arr) {
+		/*
 		// used to find the average difference between consecutive array elements
 		float diffSum = 0;
 		int avgDiffCount = 0;
 
 		// used to calculate the average array value
-		int sum = 0;
+		// int sum = 0;
 
 		// used to find naturally sorted sub-arrays
 		this.nmiSize = 0;
@@ -113,8 +118,10 @@ public class GrossSort extends Sort {
 
 		double min = stdDevResult.mean - stdDevResult.standardDeviation;
 		double max = stdDevResult.mean + stdDevResult.standardDeviation;
+		*/
 
 		for (int i = 0; i < arr.length; i++) {
+			/*
 			if (arr[i] > this.maxArrayValue) {
 				this.maxArrayValue = arr[i];
 			}
@@ -123,6 +130,7 @@ public class GrossSort extends Sort {
 			}
 
 			sum += arr[i];
+			*/
 
 			if (arr[i] > 0) {
 				this.numPositive++;
@@ -134,6 +142,7 @@ public class GrossSort extends Sort {
 				this.numZero++;
 			}
 
+			/*
 			if (i != arr.length - 1) {
 				// record the ending index of the naturally sorted sub-array
 				if (arr[i] > arr[i + 1]) {
@@ -149,8 +158,10 @@ public class GrossSort extends Sort {
 				diffSum += arr[i + 1] - arr[i];
 				avgDiffCount++;
 			}
+			*/
 		}
 
+		/*
 		naturalMergeIndices[nmiSize] = arr.length - 1;
 		nmiSize++;
 
@@ -158,9 +169,10 @@ public class GrossSort extends Sort {
 		this.avgDiff = diffSum / avgDiffCount;
 		this.avgArrayValue = (float)sum / arr.length;
 
-		/* if (avgDiff < 0) {
+		if (avgDiff < 0) {
 			arr = reverseArray(arr);
-		} */
+		}
+		*/
 
 		// System.out.println("Min: " + min + ", Max: " + max);
 		// System.out.println("Average difference between array values: " + avgDiff);
@@ -182,6 +194,7 @@ public class GrossSort extends Sort {
 		return arr;
 	}
 
+	/*
 	StdDevResult calcStandardDeviation(int[] arr) {
 		double sum = 0.0;
 		double standardDeviation = 0.0;
@@ -200,6 +213,7 @@ public class GrossSort extends Sort {
 
 		return new StdDevResult(standardDeviation, mean);
 	}
+ 	*/
 
 	List<int[]> splitPositiveNegative(int[] arr) {
 
@@ -295,21 +309,26 @@ public class GrossSort extends Sort {
 	/* Spawn a new thread to run the sorting algorithm on the provided array: */
 	/* TODO: The main thread should be included in the thread pool, and shouldn't just be waiting around here */
 	public void algorithm() {
-		staticAnalysis();
+		// staticAnalysis();
 		linearPass(this.data);
-        
-		// Phaser ph = new Phaser(1);
-		// TODO: Figure out how to choose between a fixed-sized thread pool & a work-stealing pool:
-		//ExecutorService pool = Executors.newFixedThreadPool(3);
-		// ExecutorService pool = Executors.newWorkStealingPool();
-		// Sorter sorter = new Sorter(pool, ph, data, 0, data.length);
-		// sorter.run();
 
-		// Shutdown the pool:
-		// ph.arriveAndAwaitAdvance();
-		// pool.shutdownNow();
+		Random rnd = new Random(2);
 
-		bucketSortPosNeg(this.data);
+		if (rnd.nextInt() == 0) {
+			Phaser ph = new Phaser(1);
+			// TODO: Figure out how to choose between a fixed-sized thread pool & a work-stealing pool:
+			//ExecutorService pool = Executors.newFixedThreadPool(3);
+			ExecutorService pool = Executors.newWorkStealingPool();
+			Sorter sorter = new Sorter(pool, ph, data, 0, data.length);
+			sorter.run();
+
+			// Shutdown the pool:
+			ph.arriveAndAwaitAdvance();
+			pool.shutdownNow();
+		}
+		else {
+			bucketSortPosNeg(this.data);
+		}
 
 		// Memory Usage
 		// Runtime runtime = Runtime.getRuntime();
